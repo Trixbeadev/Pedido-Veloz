@@ -1,113 +1,249 @@
-# Pedidos Veloz — Cloud DevOps MVP
+# 🚀 Pedidos-Veloz — Cloud DevOps e Microsserviços
 
-Aplicacao de e-commerce demonstrativa com gateway HTTP, microsservicos de pedidos, pagamentos (simulado) e estoque, PostgreSQL, Docker Compose, Kubernetes, GitHub Actions, Prometheus e esqueleto de infraestrutura AWS EKS com Terraform.
+Projeto acadêmico desenvolvido para a atividade **Cloud DevOps: Orchestrating Containers and Micro Services**, com foco em arquitetura de microsserviços, conteinerização, orquestração, CI/CD e observabilidade.
 
-## Arquitetura e escopo
+O Pedidos-Veloz simula um sistema de gerenciamento de pedidos, separando suas principais funcionalidades em serviços independentes. O projeto busca demonstrar como automatizar a execução dos serviços, facilitar a manutenção e acompanhar o funcionamento da aplicação.
 
-```text
-Cliente -> Gateway :5000 -> Pedidos :5001 ----+
-                           Pagamentos :5002   +--> PostgreSQL
-                           Estoque :5003 -----+
+## 🎥 Vídeo de apresentação
+
+**Assista à demonstração do projeto no YouTube:**
+
+▶️ [Clique aqui para assistir ao vídeo do Pedidos-Veloz](https://youtu.be/DndaMGAUI_I)
+
+O vídeo apresenta a arquitetura, a execução do ambiente e as principais decisões técnicas do projeto.
+
+## 🎯 Objetivos do projeto
+
+- Desenvolver uma arquitetura baseada em microsserviços.
+- Automatizar a inicialização do ambiente com Docker Compose.
+- Utilizar PostgreSQL para persistência de dados.
+- Organizar os serviços em contêineres independentes.
+- Demonstrar práticas de CI/CD e configuração de pipelines.
+- Explorar a orquestração com Kubernetes.
+- Implementar recursos de monitoramento e tracing distribuído.
+- Documentar possibilidades de escalabilidade e infraestrutura como código.
+
+## 🏗️ Arquitetura
+
+A aplicação é composta pelos seguintes serviços:
+
+| Serviço | Responsabilidade |
+|---|---|
+| API Gateway | Receber as requisições HTTP e encaminhá-las aos serviços correspondentes. |
+| Serviço de Pedidos | Criar e consultar pedidos. |
+| Serviço de Pagamentos | Simular o processamento e a aprovação de pagamentos. |
+| Serviço de Estoque | Consultar e controlar a disponibilidade dos produtos. |
+| PostgreSQL | Armazenar os dados da aplicação. |
+| Prometheus | Coletar e consultar métricas de monitoramento. |
+| Jaeger | Visualizar traces distribuídos das requisições. |
+| OpenTelemetry Collector | Receber e encaminhar dados de telemetria. |
+
+### Fluxo da aplicação
+
+1. O cliente envia uma requisição ao API Gateway.
+2. O Gateway encaminha a solicitação ao serviço responsável.
+3. O serviço de pedidos interage com os demais serviços conforme a operação solicitada.
+4. O pagamento é processado pela simulação implementada no serviço de pagamentos.
+5. O serviço de estoque verifica ou realiza a reserva dos produtos.
+6. Os dados necessários são armazenados no PostgreSQL.
+7. As ferramentas de observabilidade permitem acompanhar métricas e traces da aplicação.
+
+## 🛠️ Tecnologias utilizadas
+
+- **Docker:** conteinerização dos serviços.
+- **Docker Compose:** inicialização e organização do ambiente local.
+- **Python:** desenvolvimento dos serviços da aplicação.
+- **PostgreSQL:** banco de dados relacional.
+- **Kubernetes:** configuração da orquestração dos contêineres.
+- **GitHub Actions:** automação de etapas do pipeline CI/CD.
+- **Prometheus:** monitoramento de métricas.
+- **Jaeger:** visualização de tracing distribuído.
+- **OpenTelemetry:** instrumentação e encaminhamento de telemetria.
+- **Terraform:** infraestrutura como código.
+
+## 📋 Pré-requisitos
+
+Para executar o ambiente local, é necessário ter instalado:
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- Git
+- Um terminal, como o PowerShell ou o terminal integrado do VS Code.
+
+O Docker Desktop deve estar aberto e funcionando antes de iniciar a aplicação.
+
+## ▶️ Como executar o projeto
+
+### 1. Clonar o repositório
+
+```bash
+git clone <URL_DO_REPOSITORIO>
 ```
 
-O gateway encaminha as requisicoes. Pedidos e estoque persistem seus dados no PostgreSQL; pagamentos e uma simulacao, sem cobranca externa. O estoque usa uma atualizacao SQL atomica para evitar reservas concorrentes acima do saldo. Mensageria e service mesh foram adiadas: o MVP tem poucas operacoes sincronas e quatro semanas de prazo; eventos assincronos e mTLS via mesh seriam evolucao quando houver requisitos de desacoplamento/seguranca operacional que justifiquem essa complexidade.
+Entre na pasta do projeto:
 
-## Rodar localmente
+```bash
+cd Pedidos-Veloz
+```
 
-Requisitos: Docker Desktop com Docker Compose v2 e, para os testes, Python 3.12+.
+### 2. Configurar as variáveis de ambiente
+
+Verifique o arquivo `.env.example` e configure as variáveis necessárias conforme as instruções do projeto.
+
+Caso a aplicação exija um arquivo `.env`, crie-o a partir do exemplo:
 
 ```powershell
-if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-docker compose config --quiet
+Copy-Item .env.example .env
+```
+
+Preencha os valores necessários antes de iniciar os serviços.
+
+**Importante:** não publique senhas, tokens ou outras credenciais reais no repositório.
+
+### 3. Iniciar os serviços
+
+Na pasta que contém o arquivo `docker-compose.yml`, execute:
+
+```bash
 docker compose up --build -d
+```
+
+Esse comando constrói as imagens necessárias e inicia os serviços definidos no Docker Compose.
+
+### 4. Verificar os contêineres
+
+```bash
 docker compose ps
 ```
 
-O gateway fica em `http://localhost:5000`. Exemplos no PowerShell:
+Para acompanhar os logs:
 
-```powershell
-Invoke-RestMethod http://localhost:5000/health
-Invoke-RestMethod -Method Post http://localhost:5000/pedidos `
-  -ContentType 'application/json' `
-  -Body '{"produto":"Mouse","quantidade":2,"valor_unitario":25.50}'
-Invoke-RestMethod http://localhost:5000/estoque
-Invoke-RestMethod -Method Post http://localhost:5000/estoque/reservas `
-  -ContentType 'application/json' -Body '{"produto":"Mouse","quantidade":1}'
+```bash
 docker compose logs -f
+```
+
+Para encerrar o ambiente:
+
+```bash
 docker compose down
 ```
 
-O volume `postgres_data` mantem os dados entre reinicios. Para apagar tambem os dados locais, use `docker compose down -v` conscientemente. A rede `backend` nao publica os microsservicos nem o banco diretamente no host. Nunca use a senha de exemplo fora de um ambiente local descartavel.
+Os dados persistidos em volumes podem ser mantidos após a parada dos contêineres. Evite utilizar `docker compose down -v` se quiser preservar os dados locais.
 
-## Testes
+## 🌐 Endereços locais
 
-```powershell
-python -m pip install -r requirements-dev.txt
-python -m pip install -r gateway/requirements.txt
-python -m pip install -r servico-pedidos/requirements.txt
-python -m pip install -r servico-pagamentos/requirements.txt
-python -m pip install -r servico-estoque/requirements.txt
-python -m pytest -q
+Com o ambiente iniciado e as portas configuradas conforme o `docker-compose.yml`, as ferramentas de monitoramento podem ser acessadas pelos seguintes endereços:
+
+| Ferramenta | Endereço |
+|---|---|
+| API Gateway | http://localhost:5000 |
+| Prometheus | http://localhost:9090 |
+| Jaeger | http://localhost:16686 |
+
+Os serviços internos de pedidos, pagamentos e estoque utilizam as portas configuradas no projeto. Eles podem se comunicar pela rede interna do Docker.
+
+> Observação: acessar a raiz do Gateway não significa necessariamente que exista uma rota configurada para `/`. Utilize os endpoints definidos pela aplicação.
+
+## 📊 Observabilidade
+
+O projeto utiliza ferramentas de observabilidade para acompanhar o comportamento dos serviços.
+
+### Prometheus
+
+Permite consultar métricas e verificar a disponibilidade dos alvos monitorados.
+
+Exemplo de consulta:
+
+```promql
+up
 ```
 
-Os testes cobrem validacao, criacao de pedido, pagamento simulado, reserva de estoque, endpoint de metricas e falha de comunicacao do gateway. Os testes de persistencia usam conexoes simuladas; o teste integrado com PostgreSQL pode ser feito subindo o Compose.
+Essa consulta permite verificar o estado dos alvos configurados no Prometheus.
 
-## Containers e imagens
+### Jaeger
 
-Cada servico tem imagem Python slim, dependencias fixadas, Gunicorn, usuario UID 10001 nao-root e cache de instalacao desativado. A Action publica quatro imagens no GitHub Container Registry (GHCR), identificadas pelo SHA do commit e pela tag `latest`. Em producao, prefira implantar pelo SHA imutavel; `latest` e apenas conveniencia para demonstracao. As imagens do GHCR sao privadas por padrao e o cluster precisa de credencial somente-leitura para pull.
+Permite visualizar traces distribuídos e acompanhar o caminho de uma requisição entre os serviços instrumentados.
 
-## Kubernetes
+### OpenTelemetry Collector
 
-Os manifests em `kubernetes/` contem namespace com Pod Security Admission `restricted`, ConfigMap, Deployments/Services, probes, limites de recursos, RollingUpdate sem indisponibilidade planejada, HPA e PostgreSQL StatefulSet com PVC. Os Secrets nao contem valores versionados: sao criados em tempo de deploy pela Action.
+Centraliza o recebimento e o encaminhamento de dados de telemetria, facilitando a integração com ferramentas de observabilidade.
 
-Para validar/aplicar num cluster autorizado:
+## ☸️ Kubernetes
 
-1. Publique as imagens (merge em `main`) e ajuste `OWNER` nos manifests ao owner do GHCR, ou use o deploy manual da Action, que atualiza os nomes e tags automaticamente.
-2. Execute `kubectl apply -f kubernetes/namespace.yaml`.
-3. Crie `pedidos-db` com as chaves `database-url` e `postgres-password`, e `ghcr-auth` como secret `docker-registry` com permissao somente-leitura para GHCR.
-4. Crie os ConfigMaps de monitoramento a partir dos arquivos versionados:
+O projeto inclui arquivos de configuração relacionados à execução dos serviços em Kubernetes.
 
-   ```powershell
-   kubectl -n pedidos-veloz create configmap prometheus-config --from-file=prometheus.yml=monitoring/prometheus.yml --dry-run=client -o yaml | kubectl apply -f -
-   kubectl -n pedidos-veloz create configmap otel-collector-config --from-file=config.yaml=monitoring/otel-collector.yaml --dry-run=client -o yaml | kubectl apply -f -
-   ```
+Essa etapa contempla recursos de orquestração e configurações voltadas à execução dos contêineres em um ambiente distribuído.
 
-5. Execute `kubectl apply -f kubernetes/`.
-6. Verifique `kubectl -n pedidos-veloz get pods,services,hpa` e `kubectl -n pedidos-veloz rollout status deployment/gateway`.
+Os manifests e demais arquivos relacionados estão organizados na pasta `kubernetes/`.
 
-A HPA exige Metrics Server instalado e funcional (`kubectl top pods -n pedidos-veloz`). Prometheus, OpenTelemetry Collector e Jaeger estao incluidos nos manifests: o Prometheus coleta `/metrics`, o Collector recebe OTLP e encaminha traces ao Jaeger. O armazenamento de Prometheus no cluster e efemero; o Jaeger usa armazenamento em memoria. Logs continuam em stdout/stderr.
+Para utilizar esses recursos, é necessário ter um cluster Kubernetes disponível e o `kubectl` configurado para acessá-lo.
 
-Para inspecionar os sinais no cluster, use `kubectl -n pedidos-veloz port-forward svc/prometheus 9090:9090` e `kubectl -n pedidos-veloz port-forward svc/jaeger 16686:16686`; os consoles ficam em `http://localhost:9090` e `http://localhost:16686`. As APIs sao iniciadas pelo `opentelemetry-instrument`, que instrumenta Flask, requests e psycopg e propaga W3C Trace Context. Em producao, substitua o armazenamento efemero por armazenamento duravel/gerenciado e dimensione/torne redundantes os componentes de observabilidade.
+## 🔄 CI/CD
 
-No Compose, `docker compose up --build -d` tambem sobe Prometheus, Collector e Jaeger. Acesse Prometheus em `http://localhost:9090` e Jaeger em `http://localhost:16686`; as portas de monitoramento ficam limitadas a loopback.
+O repositório inclui arquivos relacionados à automação do fluxo de desenvolvimento e validação.
 
-O PostgreSQL no StatefulSet e um recurso didatico de uma replica, nao HA: antes de producao real, substituir por banco gerenciado com backup, restauracao testada, criptografia e alta disponibilidade. O `LoadBalancer` do gateway tambem precisa de TLS, ingress/WAF e politicas de rede no ambiente real.
+A proposta de CI/CD contempla etapas como:
 
-### CI/CD
+- Construção das imagens.
+- Execução de testes e validações configurados no pipeline.
+- Preparação dos artefatos necessários à entrega.
+- Organização do fluxo de integração e entrega contínuas.
 
-`.github/workflows/ci-cd.yml` executa verificacao de sintaxe e testes em PR; em `main`, constroi e publica as quatro imagens usando `GITHUB_TOKEN`. O deploy ocorre somente quando a Action e iniciada manualmente na branch `main`, dentro do ambiente `production`. Como o endpoint EKS e privado, o job de deploy requer um runner Linux auto-hospedado, registrado com as labels `pedidos-veloz-private` e conectado a VPC do cluster. Configure nesse ambiente os secrets `KUBECONFIG`, `DATABASE_URL`, `POSTGRES_PASSWORD`, `GHCR_USERNAME` e `GHCR_PULL_TOKEN`; habilite revisao/aprovacao do ambiente no GitHub. O runner deve ter AWS CLI quando o kubeconfig usar o plugin exec do EKS; o kubeconfig deve ter permissao minima e curta duracao. O deploy atualiza as imagens para o SHA da execucao e aguarda os rollouts.
+Os workflows estão organizados na pasta `.github/workflows/`.
 
-## Infraestrutura como codigo
+## 📈 Escalabilidade e infraestrutura como código
 
-`terraform/` define um cluster EKS com endpoint privado, logs de auditoria/controle, grupo gerenciado de nos e addons de rede/storage. A VPC e as subnets privadas sao entradas preexistentes; copie e edite `terraform/terraform.tfvars.example` como `terraform/terraform.tfvars` local (nao versionar secrets/state), configure state remoto com lock e criptografia, revise custos e rode `terraform fmt`, `terraform validate` e `terraform plan` antes de qualquer `apply`. O modulo nao provisiona VPC, banco gerenciado, DNS, TLS nem observabilidade.
+O projeto também aborda estratégias para evolução do ambiente:
 
-## Relatorios e video
+- **Escalabilidade:** possibilidade de ajustar a quantidade de réplicas dos serviços conforme a demanda.
+- **Estratégias de implantação:** utilização de abordagens como Rolling Update para reduzir riscos durante atualizações.
+- **Terraform:** organização da infraestrutura como código, permitindo descrever recursos de forma reproduzível.
 
-- [Relatorio teorico (PDF)](./relatorio-teorico.pdf) — arquitetura cloud-native, conteinerizacao, orquestracao, CI/CD e observabilidade.
-- [Relatorio pratico (PDF)](./relatorio-pratico.pdf) — desenho e demonstracao da implementacao, deploy, escala, Terraform e limites do MVP.
-- [Roteiro do pitch de ate 4 minutos](./docs/roteiro-video.md).
-- **Video YouTube:** pendente de gravacao e publicacao pela equipe. Substitua `PENDENTE` no roteiro e neste README pelo link publico ou nao listado antes da entrega final; nao foi criada uma URL ficticia.
+Os arquivos relacionados à infraestrutura estão organizados na pasta `terraform/`.
 
-## Referencias primarias e exemplo concreto
+## 📁 Estrutura do projeto
 
-- Kubernetes, Deployments e rollouts: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
-- Kubernetes, probes: https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/
-- Kubernetes, HPA: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/
-- Kubernetes, Pod Security Standards: https://kubernetes.io/docs/concepts/security/pod-security-standards/
-- Docker Compose: https://docs.docker.com/compose/
-- Docker build best practices: https://docs.docker.com/build/building/best-practices/
-- GitHub Actions: https://docs.github.com/actions
-- Terraform AWS EKS module: https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/latest
-- OpenTelemetry: https://opentelemetry.io/docs/what-is-opentelemetry/
-- 12-Factor App: https://12factor.net/
-- Exemplo publico de referencia: Google Cloud [Online Boutique](https://github.com/GoogleCloudPlatform/microservices-demo), um e-commerce demonstrativo composto por 11 microsservicos, executavel em Kubernetes, com documentacao de arquitetura. Serve como evidencia concreta de decomposicao e operacao cloud-native, nao como prova de resultados de producao.
+A estrutura pode ser consultada diretamente no repositório. As principais pastas e arquivos incluem:
+
+```text
+Pedidos-Veloz/
+├── .github/
+│   └── workflows/
+├── gateway/
+├── servico-pedidos/
+├── servico-pagamentos/
+├── servico-estoque/
+├── database/
+├── kubernetes/
+├── monitoring/
+├── terraform/
+├── tests/
+├── .env.example
+├── docker-compose.yml
+├── relatorio-pratico.pdf
+├── relatorio-teorico.pdf
+└── README.md
+```
+
+A estrutura acima destaca os principais componentes esperados do projeto. Consulte os diretórios existentes no repositório para verificar os arquivos específicos de cada serviço.
+
+## 📄 Relatórios técnicos
+
+Os relatórios complementam a implementação e documentam as decisões tomadas durante o desenvolvimento.
+
+- **Relatório teórico:** conceitos de microsserviços, DevOps, conteinerização, orquestração, CI/CD e observabilidade.
+- **Relatório prático:** arquitetura desenvolvida, execução do ambiente, configurações e estratégias técnicas adotadas.
+
+Os arquivos estão disponíveis na raiz do repositório:
+
+- `relatorio-teorico.pdf`
+- `relatorio-pratico.pdf`
+
+## 🎓 Contexto acadêmico
+
+Projeto desenvolvido como parte da atividade **Cloud DevOps: Orchestrating Containers and Micro Services**, com o objetivo de aplicar conceitos de desenvolvimento distribuído, automação, monitoramento e infraestrutura.
+
+O desenvolvimento permitiu praticar a integração entre serviços independentes e conhecer ferramentas utilizadas em ambientes modernos de desenvolvimento e operação de aplicações.
+
+---
+
+**Demonstração em vídeo:** https://youtu.be/DndaMGAUI_I
