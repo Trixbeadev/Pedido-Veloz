@@ -259,14 +259,19 @@ Pedido-Veloz/
 
 Essa estrutura apresenta os diretórios e arquivos identificados no repositório. Cada pasta reúne os arquivos relacionados à sua respectiva finalidade.
 
+## 🧪 Testes
+
+Os testes (`tests/`) usam os clientes de teste do Flask e conexões PostgreSQL simuladas, portanto não exigem a API nem o banco em execução e rodam localmente ou na CI sem subir o Compose. Cobrem validação e criação/listagem de pedidos, pagamento simulado, consulta/reserva de estoque, métricas e falha de comunicação do Gateway. A CI também verifica a sintaxe Python e o estilo com Ruff.
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
 ## 📄 Relatórios técnicos
 
-Os relatórios técnicos complementam a documentação do projeto e apresentam os conceitos estudados, a arquitetura desenvolvida e as decisões adotadas durante a implementação.
-
-- **Relatório teórico:** aborda os conceitos relacionados a microsserviços, DevOps, conteinerização, orquestração, CI/CD e observabilidade.
-- **Relatório prático:** documenta a implementação do projeto, as ferramentas utilizadas e as configurações realizadas.
-
-Os relatórios devem ser consultados no local definido para a entrega acadêmica, pois seus arquivos não foram identificados na raiz do repositório.
+- [Relatório teórico (PDF)](relatorio-teorico.pdf): microsserviços, DevOps, Docker x Kubernetes, orquestração, CI/CD e observabilidade.
+- [Relatório prático (PDF)](relatorio-pratico.pdf): arquitetura, Compose, Kubernetes, pipeline, observabilidade, deploy, Terraform e testes.
 
 ## 🎓 Contexto acadêmico
 
