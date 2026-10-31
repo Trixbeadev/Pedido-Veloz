@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Relatorio teorico - Pedidos Veloz</title>
+  <style>
+    @page { size: A4; margin: 16mm 18mm; }
+    * { box-sizing: border-box; }
+    body { font: 10pt/1.35 Arial, sans-serif; color: #172033; margin: 0; }
+    .page { min-height: 264mm; page-break-after: always; }
+    .page:last-child { page-break-after: auto; }
+    h1 { font-size: 20pt; color: #123b68; margin: 0 0 4mm; }
+    h2 { font-size: 13pt; color: #176b87; margin: 5mm 0 2mm; }
+    h3 { font-size: 10.5pt; margin: 3mm 0 1mm; }
+    p { margin: 0 0 2.3mm; text-align: justify; }
+    ul { margin: 1mm 0 2.5mm 5mm; padding-left: 4mm; }
+    li { margin-bottom: 1mm; }
+    .sub { color: #476078; font-size: 9pt; margin-bottom: 6mm; }
+    .callout { background: #edf5f8; padding: 3mm; border-left: 3px solid #176b87; }
+    .refs { font-size: 8pt; overflow-wrap: anywhere; }
+    a { color: #125c8c; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <section class="page">
+    <h1>Modernização cloud-native da Loja Veloz</h1>
+    <div class="sub">Relatório técnico teórico | Projeto Pedidos Veloz | 28 de outubro de 2026</div>
+
+    <h2>Arquitetura de microsserviços e papel do DevOps</h2>
+    <p>Microsserviços organizam um sistema como serviços pequenos, autônomos e alinhados a capacidades de negócio, comunicando-se por contratos de rede. No cenário proposto, Gateway, Pedidos, Pagamentos e Estoque são componentes separados; PostgreSQL persiste pedidos e saldo de estoque. Essa decomposição permite evolução e escala independentes, mas aumenta o número de falhas de rede, contratos, versões e dependências que precisam ser operados. Não é uma vantagem automática: limites de domínio, observabilidade e automação são condições para que o custo distribuído seja controlável.</p>
+    <p>DevOps é a prática cultural e técnica que aproxima desenvolvimento e operação por responsabilidade compartilhada, feedback curto e automação. O ciclo inclui revisão de código, testes, build reproduzível, publicação de artefatos identificáveis, implantação progressiva e observação do comportamento em produção. Métricas e incidentes devem orientar melhorias e rollback, em vez de depender de procedimentos manuais e conhecimento individual.</p>
+
+    <h2>Conteinerização: Docker e Kubernetes</h2>
+    <p>Uma imagem Docker empacota aplicação e dependências em camadas reproduzíveis; o contêiner executa esse pacote com isolamento de processos, rede e filesystem fornecido pelo sistema operacional. Docker/Compose é apropriado para construção, execução local e integração de múltiplos serviços com redes, volumes e variáveis num arquivo declarativo. Compose reduz divergência entre máquinas e oferece inicialização coordenada para desenvolvimento, mas não é, por si só, uma plataforma de orquestração distribuída com reconciliação de réplicas.</p>
+    <p>Kubernetes é a camada de orquestração. Deployments declaram estado desejado e fazem rollout/rollback de Pods; Services fornecem descoberta e balanceamento interno; ConfigMaps e Secrets separam configuração do artefato; probes controlam prontidão e recuperação; HPA ajusta réplicas segundo métricas. Docker e Kubernetes não são alternativas equivalentes: Compose padroniza a experiência local e Kubernetes opera cargas distribuídas em cluster.</p>
+
+    <h2>Orquestração, resiliência e segurança</h2>
+    <p>Orquestrar significa reconciliar continuamente estado observado e desejado, reagindo a falhas de processo/nó e mudanças de capacidade. A estratégia adotada é RollingUpdate com Pods prontos antes de remover réplicas antigas, suportada por readiness e liveness probes. Recursos requests/limits permitem escalonamento previsível. O HPA usa CPU como sinal inicial; isso exige Metrics Server e não substitui escalonamento de nós. Para cargas reais, calibrar limites e métricas com testes de carga e SLOs.</p>
+    <p>Configuração não sensível pertence ao ConfigMap; credenciais devem vir de Secret ou cofre externo. Secrets do Kubernetes são codificados em base64 e precisam de controle RBAC, criptografia em repouso e rotação. Pod Security Admission no nível <em>restricted</em>, usuário não-root, seccomp, filesystem somente leitura e remoção de capabilities reduzem privilégios. Rede externa deve terminar em TLS/WAF; o MVP não habilita service mesh, mTLS ou políticas de rede.</p>
+  </section>
+  <section class="page">
+    <h1>Entrega contínua e observabilidade</h1>
+    <h2>CI/CD em sistemas distribuídos</h2>
+    <p>CI executa validações automatizadas em cada alteração; CD produz e implanta artefatos de forma repetível, limitando risco por gates e rollout. Neste trabalho, PRs executam checagem de sintaxe e testes; merges na branch principal constroem e publicam imagens no GHCR com tag imutável do SHA. Uma execução manual e protegida do ambiente production aplica os manifests e aguarda o rollout. Credenciais de cluster e banco são secrets do ambiente, não arquivos do repositório. Em maturidade posterior, assinatura/verificação de imagem, scan de vulnerabilidades, promoção entre ambientes e aprovação por SLO completam os gates.</p>
+    <p>Versionar imagens pelo commit conecta o que foi testado ao que foi implantado e permite rollback rastreável. Cache do BuildKit reduz tempo sem alterar o conteúdo lógico do build. O pipeline separa permissões: leitura do código para testes e publicação somente quando a branch é autorizada; segredos de implantação não são necessários nos PRs.</p>
+
+    <h2>Observabilidade: métricas, logs e traces</h2>
+    <p>Observabilidade combina sinais complementares. Métricas agregam comportamento ao longo do tempo, como taxa de requisições, latência, erros, saturação de CPU/memória e conexões do banco; Prometheus coleta as métricas HTTP expostas por cada API em <code>/metrics</code>. Logs estruturados em stdout/stderr registram eventos e erros para agregação centralizada. Traces correlacionam spans de uma requisição entre gateway, serviços e dependências, identificando latência e falha no caminho completo.</p>
+    <p>As imagens iniciam as APIs com o agente <code>opentelemetry-instrument</code>, que instrumenta Flask, chamadas HTTP via requests e consultas psycopg. O contexto W3C Trace Context atravessa o gateway e os serviços; os spans seguem por OTLP para um OpenTelemetry Collector e são consultáveis no Jaeger. Prometheus é provisionado por Compose e Kubernetes para coletar as métricas HTTP. OpenTelemetry padroniza geração/exportação, não é armazenamento nem interface de consulta.</p>
+
+    <h2>Justificativa das decisões</h2>
+    <div class="callout">
+      <p><strong>Compose local:</strong> ambiente com um único comando, Postgres persistente e healthchecks, adequado ao prazo de quatro semanas.</p>
+      <p><strong>Kubernetes:</strong> Deployments, Services, probes e HPA tornam estado e rollout declarativos; PostgreSQL StatefulSet serve como demonstração, não como banco de produção resiliente.</p>
+      <p><strong>Rolling + HPA:</strong> estratégia simples de baixa indisponibilidade, com rollback por revisão; mínimo de duas réplicas e meta inicial de CPU a 70%.</p>
+      <p><strong>Sem mensageria/mesh:</strong> as operações demonstradas são síncronas e o MVP não necessita de brokers nem gestão de tráfego avançada; adotá-los sem requisito aumentaria custo operacional. Estoque e pedidos persistem em banco compartilhado no protótipo, decisão que deve evoluir para isolamento de dados e eventos/outbox em escala real.</p>
+    </div>
+
+    <h2>Referências primárias e exemplo de referência</h2>
+    <ul class="refs">
+      <li>Kubernetes: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/">Deployments</a>, <a href="https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/">probes</a>, <a href="https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/">HPA</a> e <a href="https://kubernetes.io/docs/concepts/security/pod-security-standards/">Pod Security Standards</a>.</li>
+      <li>Docker Compose: <a href="https://docs.docker.com/compose/">docs.docker.com/compose</a>; boas práticas de build: <a href="https://docs.docker.com/build/building/best-practices/">Docker Docs</a>.</li>
+      <li>GitHub Actions: <a href="https://docs.github.com/actions">docs.github.com/actions</a>; Terraform EKS: <a href="https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/latest">módulo oficial no Registry</a>.</li>
+      <li>OpenTelemetry: <a href="https://opentelemetry.io/docs/what-is-opentelemetry/">opentelemetry.io/docs/what-is-opentelemetry</a>; 12-Factor: <a href="https://12factor.net/">12factor.net</a>.</li>
+      <li>Exemplo concreto: <a href="https://github.com/GoogleCloudPlatform/microservices-demo">Google Cloud Online Boutique</a>, repositório público com e-commerce demonstrativo de 11 microsserviços executável em Kubernetes e documentação de arquitetura. É referência técnica, não alegação de case de produção.</li>
+    </ul>
+  </section>
+</body>
+</html>

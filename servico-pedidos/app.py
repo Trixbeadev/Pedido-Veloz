@@ -3,9 +3,11 @@ import time
 
 import psycopg
 from flask import Flask, jsonify, request
+from prometheus_flask_exporter import PrometheusMetrics
 from psycopg.rows import dict_row
 
 app = Flask(__name__)
+PrometheusMetrics(app)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -48,7 +50,7 @@ def health_ready():
         with conectar_banco() as conexao:
             conexao.execute("SELECT 1")
         return jsonify({"status": "ready"}), 200
-    except Exception:
+    except psycopg.Error:
         return jsonify({"status": "unavailable"}), 503
 
 
@@ -67,6 +69,8 @@ def criar_pedido():
         return jsonify({"erro": "A quantidade deve ser um inteiro positivo."}), 400
 
     try:
+        if isinstance(valor_unitario, bool):
+            raise ValueError()
         valor_unitario = float(valor_unitario)
         if valor_unitario <= 0:
             raise ValueError()

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Relatorio pratico - Pedidos Veloz</title>
+  <style>
+    @page { size: A4; margin: 15mm 17mm; }
+    * { box-sizing: border-box; }
+    body { font: 9.5pt/1.32 Arial, sans-serif; color: #172033; margin: 0; }
+    .page { min-height: 267mm; page-break-after: always; }
+    .page:last-child { page-break-after: auto; }
+    h1 { font-size: 19pt; color: #123b68; margin: 0 0 3mm; }
+    h2 { font-size: 12.5pt; color: #176b87; margin: 4mm 0 1.5mm; }
+    h3 { font-size: 10pt; margin: 3mm 0 1mm; }
+    p { margin: 0 0 2mm; text-align: justify; }
+    ul, ol { margin: 1mm 0 2mm 5mm; padding-left: 4mm; }
+    li { margin-bottom: 1mm; }
+    pre { white-space: pre-wrap; background: #f0f3f6; padding: 2.5mm; font: 8pt/1.25 Consolas, monospace; }
+    table { border-collapse: collapse; width: 100%; margin: 2mm 0; font-size: 8.5pt; }
+    th, td { border: 1px solid #bbc9d3; padding: 1.5mm; text-align: left; vertical-align: top; }
+    th { background: #e8f1f5; }
+    .sub { color: #476078; font-size: 8.5pt; margin-bottom: 4mm; }
+    .callout { background: #edf5f8; padding: 2.5mm; border-left: 3px solid #176b87; }
+    .small { font-size: 8pt; overflow-wrap: anywhere; }
+    a { color: #125c8c; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <section class="page">
+    <h1>Implementação do MVP Pedidos Veloz</h1>
+    <div class="sub">Relatório técnico prático | Cloud DevOps | 28 de outubro de 2026</div>
+    <h2>Objetivo e arquitetura</h2>
+    <p>O artefato entrega uma aplicação de comércio eletrônico mínima para demonstrar o ciclo de desenvolvimento e operação. O gateway HTTP encaminha chamadas para quatro processos: pedidos, pagamentos simulados, estoque e PostgreSQL. Pedidos e estoque gravam no banco; reservas fazem atualização condicional atômica para impedir saldo negativo. O objetivo é funcionalidade educacional reproduzível, não processamento real de pagamentos ou arquitetura pronta para produção financeira.</p>
+    <table>
+      <tr><th>Componente</th><th>Responsabilidade</th><th>Verificação</th></tr>
+      <tr><td>Gateway :5000</td><td>Entrada HTTP e encaminhamento</td><td>/health, /metrics</td></tr>
+      <tr><td>Pedidos :5001</td><td>Validar/criar/listar pedidos</td><td>PostgreSQL, readiness do banco</td></tr>
+      <tr><td>Pagamentos :5002</td><td>Validação e aprovação simulada</td><td>Resposta JSON e métricas</td></tr>
+      <tr><td>Estoque :5003</td><td>Consulta e reserva persistente</td><td>SQL atômico, readiness do banco</td></tr>
+      <tr><td>PostgreSQL :5432</td><td>Persistência de pedidos e estoque</td><td>Healthcheck pg_isready, volume/PVC</td></tr>
+    </table>
+    <h2>Ambiente local com Compose</h2>
+    <p><code>docker-compose.yml</code> sobe a stack com uma rede bridge privada, volume nomeado do PostgreSQL, inicialização do schema, credenciais via arquivo de ambiente e healthchecks encadeados. Somente o gateway publica porta no host; dependências esperam a prontidão real dos serviços. Isso reduz divergência local e substitui instruções manuais por um fluxo simples:</p>
+    <pre>Copy-Item .env.example .env
+docker compose config --quiet
+docker compose up --build -d
+docker compose ps</pre>
+    <p>O README registra chamadas PowerShell, logs, testes e encerramento. O volume sobrevive a reinicializações; apagar com <code>down -v</code> é uma ação explícita e destrutiva para dados locais.</p>
+    <h2>Conteinerização e versionamento</h2>
+    <p>As quatro imagens usam <code>python:3.12-slim</code>, instalação sem cache/bytecode e dependências Python fixadas. Gunicorn atende HTTP em vez do servidor de desenvolvimento Flask. O processo roda com UID 10001 sem privilégios; cada aplicação tem Dockerfile independente. A Action publica tags com SHA do commit no GHCR e usa cache de build. Para implantação, o SHA é a identidade reprodutível; <code>latest</code> existe apenas para facilitar a demonstração.</p>
+    <p>Limitação: as imagens ainda não estão endurecidas por digest base, assinadas ou submetidas a scanner. A pipeline deve incluir scan de CVEs e política de bloqueio como gate antes de uma promoção real.</p>
+  </section>
+  <section class="page">
+    <h1>Orquestração e segurança</h1>
+    <h2>Deployments, Services e configuração</h2>
+    <p>Os manifests em <code>kubernetes/</code> declaram namespace <code>pedidos-veloz</code>, ConfigMap, Deployments e Services internos para serviços de aplicação. Gateway é exposto por Service LoadBalancer. Cada API inicia com duas réplicas e estratégia RollingUpdate configurada com <code>maxUnavailable: 0</code> e <code>maxSurge: 1</code>, evitando remover réplicas prontas durante o rollout. Startup/readiness/liveness probes separam tempo de inicialização, entrada no balanceamento e reinício de processo. Requests/limits tornam CPU utilizável pelo HPA e limitam consumo.</p>
+    <p>O PostgreSQL de demonstração é StatefulSet de uma réplica com PVC de 10 GiB e probes de banco. Em produção, esse desenho single-instance não oferece alta disponibilidade, failover ou backup gerenciado; deve ser substituído por serviço de banco com replicação, criptografia, backups e restauração validada.</p>
+    <h2>Segredos e controles</h2>
+    <ul>
+      <li>ConfigMap contém nomes de banco e URLs internas; credenciais não são versionadas.</li>
+      <li>GitHub Actions cria Secrets de banco e image-pull no cluster a partir do environment protegido. Base64 de Kubernetes Secret não é criptografia; habilitar encryption-at-rest, RBAC mínimo, rotação e cofre externo.</li>
+      <li>Pod Security Admission aplica perfil <code>restricted</code>; containers executam non-root, filesystem read-only, sem escalation e sem capabilities, com seccomp RuntimeDefault.</li>
+      <li>Faltam NetworkPolicies, TLS/Ingress/WAF e assinatura de imagens; o LoadBalancer direto é somente demonstração.</li>
+    </ul>
+    <h2>Entrega CI/CD</h2>
+    <p><code>.github/workflows/ci-cd.yml</code> valida PRs com compilação e testes; merges em <code>main</code> publicam quatro imagens no GHCR com SHA imutável. A publicação autentica pelo token efêmero <code>GITHUB_TOKEN</code>. Um deploy é iniciado manualmente em <code>main</code>, usando o environment <code>production</code> e secrets de cluster, banco e leitura do GHCR; aplica manifests, define os quatro SHAs e aguarda cada rollout. Como o endpoint EKS é privado, o job exige runner Linux auto-hospedado dentro da VPC e registrado com a label <code>pedidos-veloz-private</code>. Segredos de deploy não estão disponíveis aos testes de PR.</p>
+    <p>Antes de habilitar o environment, cadastrar <code>KUBECONFIG</code>, <code>DATABASE_URL</code>, <code>POSTGRES_PASSWORD</code>, <code>GHCR_USERNAME</code> e <code>GHCR_PULL_TOKEN</code>, além de ativar revisão/aprovação. O kubeconfig deve ser de privilégio mínimo. Métricas HPA exigem Metrics Server, que deve ser instalado no cluster; capacidade de nós também precisa de autoscaler e orçamento.</p>
+  </section>
+  <section class="page">
+    <h1>Observabilidade, escala e validação</h1>
+    <h2>Métricas, logs e traces</h2>
+    <p>As APIs expõem métricas HTTP em <code>/metrics</code> com Prometheus Flask Exporter. Prometheus é executado no Compose e no Kubernetes; os targets de cada ambiente são configurados separadamente. No cluster, a série temporal fica em volume efêmero. Logs vão para stdout/stderr para agregação pelo runtime/plataforma. Uma etapa de operação deve definir painéis e alertas para taxa de erro, latência p95/p99, throughput, uso de CPU/memória, reinícios, saturação e falhas do banco, com SLO e runbook.</p>
+    <p>Tracing distribuído está instrumentado com OpenTelemetry para Flask, requests e psycopg. As APIs propagam W3C Trace Context, exportam OTLP ao Collector e permitem consulta no Jaeger, cujo armazenamento em memória é adequado apenas à demonstração. Service mesh/mTLS foi adiado por falta de requisito de tráfego/identidade que justifique operar mais componentes no MVP.</p>
+    <h2>Estratégia de implantação e escala</h2>
+    <p>RollingUpdate equilibra simplicidade, disponibilidade e reversão por histórico de Deployment. Readiness impede enviar tráfego a Pods ainda sem banco; rollout espera o estado estável. O HPA v2 cobre gateway, pedidos, pagamentos e estoque, com mínimo 2, máximo 10 réplicas e CPU alvo de 70%, usando requests declarados. Esse limiar é inicial, não dimensionamento certificado: ensaio de carga deverá definir capacidade, latência aceitável, comportamento de dependências e limites. PostgreSQL não deve escalar horizontalmente via HPA.</p>
+    <h2>Testes e reprodução</h2>
+    <p>A suite pytest usa os clientes Flask e conexoes simuladas, sem depender de API ou banco rodando. Ela cobre health/metrics, validacao e criacao/listagem de pedidos, pagamento simulado, consulta/reserva de estoque e indisponibilidade do gateway. A CI verifica sintaxe Python e estilo com Ruff. Compose permite validar a integracao real com PostgreSQL. A validacao de manifests no cluster autorizado deve incluir <code>kubectl apply --dry-run=server</code>, rollout, readiness, testes de API e confirmacao de HPA via <code>kubectl top pods</code>. Terraform e um esqueleto EKS dependente de VPC/subnets existentes; requer backend remoto com locking antes do trabalho colaborativo.</p>
+    <h2>Referência de arquitetura e limites</h2>
+    <p>O repositório público Google Cloud Online Boutique demonstra um e-commerce cloud-first composto por 11 microsserviços que podem rodar em Kubernetes. O exemplo inspira decomposição e operação; não é apresentado como resultado de produção. Neste MVP, pagamentos continuam simulados, não existe fila de eventos, o armazenamento do Prometheus é efêmero, o Jaeger usa memória e o banco local/StatefulSet não é HA. Essas limitações são explícitas para evitar confundir um esqueleto reproduzível com ambiente pronto para campanha real.</p>
+    <div class="callout"><strong>Vídeo pitch até 4 minutos:</strong> pendente de gravação e publicação. Inserir o link YouTube (público ou não listado) nesta entrega e no README depois da gravação; nenhum link fictício foi incluído.</div>
+    <h2>Fontes primárias</h2>
+    <p class="small">Kubernetes Deployments, probes, HPA e Pod Security: kubernetes.io/docs. Docker Compose e build best practices: docs.docker.com. GitHub Actions: docs.github.com/actions. Terraform AWS EKS: registry.terraform.io/modules/terraform-aws-modules/eks/aws/latest. OpenTelemetry: opentelemetry.io/docs/what-is-opentelemetry. 12-Factor: 12factor.net. Referência concreta: github.com/GoogleCloudPlatform/microservices-demo (Online Boutique).</p>
+  </section>
+</body>
+</html>

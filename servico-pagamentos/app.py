@@ -1,11 +1,14 @@
 import os
 
 from flask import Flask, jsonify, request
+from prometheus_flask_exporter import PrometheusMetrics
 
 app = Flask(__name__)
+PrometheusMetrics(app)
 
 
 @app.route("/health", methods=["GET"])
+@app.route("/health/ready", methods=["GET"])
 def health():
     return jsonify({"status": "ok", "servico": "pagamentos"}), 200
 
@@ -21,6 +24,8 @@ def realizar_pagamento():
         return jsonify({"erro": "Informe um ID de pedido válido."}), 400
 
     try:
+        if isinstance(valor, bool):
+            raise ValueError()
         valor = float(valor)
         if valor <= 0:
             raise ValueError()

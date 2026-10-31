@@ -2,8 +2,10 @@ import os
 
 import requests
 from flask import Flask, jsonify, request
+from prometheus_flask_exporter import PrometheusMetrics
 
 app = Flask(__name__)
+PrometheusMetrics(app)
 
 SERVICOS = {
     "pedidos": os.getenv("PEDIDOS_URL", "http://servico-pedidos:5001"),
@@ -13,6 +15,7 @@ SERVICOS = {
 
 
 @app.route("/health", methods=["GET"])
+@app.route("/health/ready", methods=["GET"])
 def health():
     return jsonify({"status": "ok", "servico": "gateway"}), 200
 
