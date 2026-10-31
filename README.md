@@ -1,101 +1,112 @@
-# 🚀 Pedidos-Veloz — Cloud DevOps e Microsserviços
+# 🚀 Pedido-Veloz — Cloud DevOps e Microsserviços
 
-Projeto acadêmico desenvolvido para a atividade **Cloud DevOps: Orchestrating Containers and Micro Services**, com foco em arquitetura de microsserviços, conteinerização, orquestração, CI/CD e observabilidade.
+Projeto acadêmico desenvolvido para a atividade **Cloud DevOps: Orchestrating Containers and Micro Services**, com foco em arquitetura de microsserviços, conteinerização, orquestração, integração e entrega contínuas (CI/CD) e observabilidade.
 
-O Pedidos-Veloz simula um sistema de gerenciamento de pedidos, separando suas principais funcionalidades em serviços independentes. O projeto busca demonstrar como automatizar a execução dos serviços, facilitar a manutenção e acompanhar o funcionamento da aplicação.
+O Pedido-Veloz simula um sistema de gerenciamento de pedidos, separando suas principais funcionalidades em serviços independentes. O projeto busca demonstrar como organizar a aplicação em microsserviços, automatizar a execução dos serviços e acompanhar o funcionamento do ambiente.
 
 ## 🎥 Vídeo de apresentação
 
 **Assista à demonstração do projeto no YouTube:**
 
-▶️ [Clique aqui para assistir ao vídeo do Pedidos-Veloz](https://youtu.be/DndaMGAUI_I)
+▶️ [Clique aqui para assistir ao vídeo do Pedido-Veloz](https://youtu.be/DndaMGAUI_I)
 
-O vídeo apresenta a arquitetura, a execução do ambiente e as principais decisões técnicas do projeto.
+O vídeo apresenta a demonstração do projeto e suas principais funcionalidades.
 
 ## 🎯 Objetivos do projeto
 
 - Desenvolver uma arquitetura baseada em microsserviços.
-- Automatizar a inicialização do ambiente com Docker Compose.
+- Automatizar a inicialização do ambiente utilizando Docker Compose.
 - Utilizar PostgreSQL para persistência de dados.
 - Organizar os serviços em contêineres independentes.
-- Demonstrar práticas de CI/CD e configuração de pipelines.
-- Explorar a orquestração com Kubernetes.
-- Implementar recursos de monitoramento e tracing distribuído.
-- Documentar possibilidades de escalabilidade e infraestrutura como código.
+- Trabalhar com práticas de integração e entrega contínuas (CI/CD).
+- Explorar a orquestração de contêineres com Kubernetes.
+- Utilizar ferramentas de monitoramento e rastreamento distribuído.
+- Conhecer estratégias de escalabilidade e infraestrutura como código.
 
 ## 🏗️ Arquitetura
 
-A aplicação é composta pelos seguintes serviços:
+A aplicação está organizada em serviços independentes, com responsabilidades específicas dentro do sistema de gerenciamento de pedidos.
 
-| Serviço | Responsabilidade |
+| Componente | Responsabilidade |
 |---|---|
-| API Gateway | Receber as requisições HTTP e encaminhá-las aos serviços correspondentes. |
-| Serviço de Pedidos | Criar e consultar pedidos. |
-| Serviço de Pagamentos | Simular o processamento e a aprovação de pagamentos. |
-| Serviço de Estoque | Consultar e controlar a disponibilidade dos produtos. |
-| PostgreSQL | Armazenar os dados da aplicação. |
-| Prometheus | Coletar e consultar métricas de monitoramento. |
-| Jaeger | Visualizar traces distribuídos das requisições. |
-| OpenTelemetry Collector | Receber e encaminhar dados de telemetria. |
+| Portal / API Gateway | Ponto de entrada para as requisições da aplicação, conforme a implementação do projeto. |
+| Serviço de Pedidos | Responsável pelas operações relacionadas aos pedidos. |
+| Serviço de Pagamentos | Responsável pela lógica de pagamentos implementada no projeto. |
+| Serviço de Estoque | Responsável pelas operações relacionadas ao estoque. |
+| Banco de dados | Armazenamento das informações utilizadas pela aplicação. |
+| Prometheus | Monitoramento de métricas, conforme a configuração do ambiente. |
+| Jaeger | Visualização de rastreamentos distribuídos, conforme a instrumentação configurada. |
+| OpenTelemetry | Instrumentação e encaminhamento de dados de telemetria, conforme a implementação. |
 
 ### Fluxo da aplicação
 
-1. O cliente envia uma requisição ao API Gateway.
-2. O Gateway encaminha a solicitação ao serviço responsável.
-3. O serviço de pedidos interage com os demais serviços conforme a operação solicitada.
-4. O pagamento é processado pela simulação implementada no serviço de pagamentos.
-5. O serviço de estoque verifica ou realiza a reserva dos produtos.
-6. Os dados necessários são armazenados no PostgreSQL.
-7. As ferramentas de observabilidade permitem acompanhar métricas e traces da aplicação.
+De maneira geral, o fluxo de uma aplicação de gerenciamento de pedidos baseada em microsserviços pode envolver as seguintes etapas:
+
+1. O cliente acessa a aplicação.
+2. A requisição é encaminhada ao componente responsável por recebê-la.
+3. O serviço de pedidos executa a operação solicitada.
+4. Os serviços de pagamentos e estoque participam das operações que necessitam dessas funcionalidades.
+5. As informações necessárias são armazenadas no banco de dados.
+6. As ferramentas de observabilidade auxiliam no acompanhamento do ambiente, quando configuradas para isso.
+
+O fluxo exato depende das rotas, das integrações e das configurações implementadas nos serviços.
 
 ## 🛠️ Tecnologias utilizadas
 
+As tecnologias relacionadas ao projeto incluem:
+
 - **Docker:** conteinerização dos serviços.
-- **Docker Compose:** inicialização e organização do ambiente local.
-- **Python:** desenvolvimento dos serviços da aplicação.
+- **Docker Compose:** organização e inicialização do ambiente local.
+- **Python:** desenvolvimento dos serviços de aplicação.
 - **PostgreSQL:** banco de dados relacional.
-- **Kubernetes:** configuração da orquestração dos contêineres.
+- **Kubernetes:** orquestração de contêineres.
 - **GitHub Actions:** automação de etapas do pipeline CI/CD.
 - **Prometheus:** monitoramento de métricas.
-- **Jaeger:** visualização de tracing distribuído.
+- **Jaeger:** visualização de rastreamentos distribuídos.
 - **OpenTelemetry:** instrumentação e encaminhamento de telemetria.
 - **Terraform:** infraestrutura como código.
 
+A utilização efetiva de cada tecnologia depende dos arquivos e das configurações presentes no repositório.
+
 ## 📋 Pré-requisitos
 
-Para executar o ambiente local, é necessário ter instalado:
+Para preparar o ambiente local, são necessários:
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - Git
 - Um terminal, como o PowerShell ou o terminal integrado do VS Code.
 
-O Docker Desktop deve estar aberto e funcionando antes de iniciar a aplicação.
+O Docker Desktop deve estar instalado, aberto e funcionando antes de iniciar os contêineres.
 
 ## ▶️ Como executar o projeto
 
 ### 1. Clonar o repositório
 
+Execute o comando:
+
 ```bash
-git clone <URL_DO_REPOSITORIO>
+git clone https://github.com/Trixbeadev/Pedido-Veloz.git
 ```
 
 Entre na pasta do projeto:
 
 ```bash
-cd Pedidos-Veloz
+cd Pedido-Veloz
 ```
 
 ### 2. Configurar as variáveis de ambiente
 
-Verifique o arquivo `.env.example` e configure as variáveis necessárias conforme as instruções do projeto.
+O repositório possui o arquivo `.env.exemplo`.
 
-Caso a aplicação exija um arquivo `.env`, crie-o a partir do exemplo:
+Confira as variáveis disponíveis nesse arquivo e verifique quais são necessárias para executar a aplicação.
+
+Se o projeto exigir um arquivo `.env`, crie uma cópia do exemplo pelo PowerShell:
 
 ```powershell
-Copy-Item .env.example .env
+Copy-Item .env.exemplo .env
 ```
 
-Preencha os valores necessários antes de iniciar os serviços.
+Depois, preencha os valores necessários conforme a configuração dos serviços.
 
 **Importante:** não publique senhas, tokens ou outras credenciais reais no repositório.
 
@@ -107,9 +118,11 @@ Na pasta que contém o arquivo `docker-compose.yml`, execute:
 docker compose up --build -d
 ```
 
-Esse comando constrói as imagens necessárias e inicia os serviços definidos no Docker Compose.
+Esse comando solicita ao Docker Compose a construção das imagens necessárias e a inicialização dos serviços definidos na configuração.
 
 ### 4. Verificar os contêineres
+
+Para verificar o estado dos serviços, execute:
 
 ```bash
 docker compose ps
@@ -121,35 +134,43 @@ Para acompanhar os logs:
 docker compose logs -f
 ```
 
-Para encerrar o ambiente:
+Para encerrar os serviços:
 
 ```bash
 docker compose down
 ```
 
-Os dados persistidos em volumes podem ser mantidos após a parada dos contêineres. Evite utilizar `docker compose down -v` se quiser preservar os dados locais.
+A parada dos contêineres não remove necessariamente os volumes de dados. Evite utilizar `docker compose down -v` se quiser preservar os dados armazenados nos volumes locais.
+
+> **Observação:** a execução correta depende das configurações presentes no `docker-compose.yml` e das variáveis de ambiente exigidas pela aplicação.
 
 ## 🌐 Endereços locais
 
-Com o ambiente iniciado e as portas configuradas conforme o `docker-compose.yml`, as ferramentas de monitoramento podem ser acessadas pelos seguintes endereços:
+Depois de iniciar o ambiente, os serviços poderão ser acessados pelas portas definidas no arquivo `docker-compose.yml`.
+
+Caso estejam configuradas com as portas abaixo, os endereços serão:
 
 | Ferramenta | Endereço |
 |---|---|
-| API Gateway | http://localhost:5000 |
+| Portal / API Gateway | http://localhost:5000 |
 | Prometheus | http://localhost:9090 |
 | Jaeger | http://localhost:16686 |
 
-Os serviços internos de pedidos, pagamentos e estoque utilizam as portas configuradas no projeto. Eles podem se comunicar pela rede interna do Docker.
+Esses endereços dependem do mapeamento de portas definido no Docker Compose.
 
-> Observação: acessar a raiz do Gateway não significa necessariamente que exista uma rota configurada para `/`. Utilize os endpoints definidos pela aplicação.
+Os serviços internos de pedidos, pagamentos e estoque podem se comunicar pela rede interna do Docker, conforme a configuração do ambiente.
+
+> **Observação:** acessar a raiz do portal ou do Gateway não significa necessariamente que exista uma rota configurada para `/`. Utilize os endpoints definidos pela aplicação.
 
 ## 📊 Observabilidade
 
-O projeto utiliza ferramentas de observabilidade para acompanhar o comportamento dos serviços.
+A observabilidade permite acompanhar o comportamento dos serviços e identificar possíveis problemas durante a execução da aplicação.
 
 ### Prometheus
 
-Permite consultar métricas e verificar a disponibilidade dos alvos monitorados.
+O Prometheus é uma ferramenta utilizada para coletar e consultar métricas de monitoramento.
+
+Quando configurado, permite verificar as métricas dos alvos monitorados.
 
 Exemplo de consulta:
 
@@ -161,89 +182,100 @@ Essa consulta permite verificar o estado dos alvos configurados no Prometheus.
 
 ### Jaeger
 
-Permite visualizar traces distribuídos e acompanhar o caminho de uma requisição entre os serviços instrumentados.
+O Jaeger permite visualizar rastreamentos distribuídos e acompanhar o caminho das requisições entre serviços instrumentados.
 
-### OpenTelemetry Collector
+### OpenTelemetry
 
-Centraliza o recebimento e o encaminhamento de dados de telemetria, facilitando a integração com ferramentas de observabilidade.
+O OpenTelemetry oferece recursos para instrumentação e geração de dados de telemetria, facilitando o acompanhamento das operações realizadas pela aplicação.
+
+A coleta e a visualização desses dados dependem da instrumentação e das configurações presentes no projeto.
 
 ## ☸️ Kubernetes
 
-O projeto inclui arquivos de configuração relacionados à execução dos serviços em Kubernetes.
+O repositório possui uma pasta chamada `Kubernetes`, destinada aos arquivos relacionados à orquestração dos contêineres.
 
-Essa etapa contempla recursos de orquestração e configurações voltadas à execução dos contêineres em um ambiente distribuído.
+O Kubernetes permite organizar a execução de aplicações conteinerizadas e oferece recursos para gerenciamento de serviços, réplicas e atualizações.
 
-Os manifests e demais arquivos relacionados estão organizados na pasta `kubernetes/`.
+Para utilizar os recursos do projeto, é necessário ter um cluster Kubernetes disponível e o `kubectl` configurado para acessá-lo.
 
-Para utilizar esses recursos, é necessário ter um cluster Kubernetes disponível e o `kubectl` configurado para acessá-lo.
+Os procedimentos específicos de execução dependem dos manifests e das configurações existentes na pasta `Kubernetes`.
 
 ## 🔄 CI/CD
 
-O repositório inclui arquivos relacionados à automação do fluxo de desenvolvimento e validação.
+O projeto aborda práticas de integração e entrega contínuas (CI/CD), que permitem automatizar etapas do processo de desenvolvimento e validação de aplicações.
 
-A proposta de CI/CD contempla etapas como:
+Entre as atividades que podem fazer parte desse processo estão:
 
-- Construção das imagens.
-- Execução de testes e validações configurados no pipeline.
-- Preparação dos artefatos necessários à entrega.
-- Organização do fluxo de integração e entrega contínuas.
+- Construção das imagens dos serviços.
+- Execução de testes e validações automatizadas.
+- Verificação das alterações realizadas no código.
+- Preparação dos artefatos necessários para a entrega.
 
-Os workflows estão organizados na pasta `.github/workflows/`.
+Os arquivos de automação relacionados ao GitHub Actions ficam normalmente organizados em `.github/workflows/`.
+
+A execução efetiva dessas etapas depende dos workflows configurados no repositório.
 
 ## 📈 Escalabilidade e infraestrutura como código
 
-O projeto também aborda estratégias para evolução do ambiente:
+O projeto também aborda conceitos relacionados à evolução e à manutenção de ambientes baseados em microsserviços.
 
-- **Escalabilidade:** possibilidade de ajustar a quantidade de réplicas dos serviços conforme a demanda.
-- **Estratégias de implantação:** utilização de abordagens como Rolling Update para reduzir riscos durante atualizações.
-- **Terraform:** organização da infraestrutura como código, permitindo descrever recursos de forma reproduzível.
+### Escalabilidade
 
-Os arquivos relacionados à infraestrutura estão organizados na pasta `terraform/`.
+A escalabilidade permite ajustar a capacidade de execução da aplicação conforme a demanda. Em ambientes compatíveis, isso pode envolver o aumento ou a redução da quantidade de réplicas dos serviços.
+
+### Estratégias de implantação
+
+Estratégias como Rolling Update permitem realizar atualizações graduais das aplicações, reduzindo os riscos associados à substituição de versões.
+
+### Terraform
+
+O Terraform é uma ferramenta de infraestrutura como código que permite descrever e gerenciar recursos de infraestrutura por meio de arquivos de configuração.
+
+Os arquivos relacionados a essa parte do projeto estão organizados na pasta `terraformar`.
+
+A aplicação efetiva dessas estratégias depende das configurações implementadas nos arquivos do projeto.
 
 ## 📁 Estrutura do projeto
 
-A estrutura pode ser consultada diretamente no repositório. As principais pastas e arquivos incluem:
+O repositório está organizado nas seguintes pastas e arquivos principais:
 
 ```text
-Pedidos-Veloz/
+Pedido-Veloz/
 ├── .github/
-│   └── workflows/
-├── gateway/
-├── servico-pedidos/
-├── servico-pagamentos/
-├── servico-estoque/
-├── database/
-├── kubernetes/
-├── monitoring/
-├── terraform/
-├── tests/
-├── .env.example
+├── banco de dados/
+├── portal/
+├── Kubernetes/
+├── monitoramento/
+├── serviço-estoque/
+├── serviço-pagamentos/
+├── serviço-pedidos/
+├── terraformar/
+├── testes/
+├── .env.exemplo
+├── .gitignore
 ├── docker-compose.yml
-├── relatorio-pratico.pdf
-├── relatorio-teorico.pdf
 └── README.md
 ```
 
-A estrutura acima destaca os principais componentes esperados do projeto. Consulte os diretórios existentes no repositório para verificar os arquivos específicos de cada serviço.
+Essa estrutura apresenta os diretórios e arquivos identificados no repositório. Cada pasta reúne os arquivos relacionados à sua respectiva finalidade.
 
 ## 📄 Relatórios técnicos
 
-Os relatórios complementam a implementação e documentam as decisões tomadas durante o desenvolvimento.
+Os relatórios técnicos complementam a documentação do projeto e apresentam os conceitos estudados, a arquitetura desenvolvida e as decisões adotadas durante a implementação.
 
-- **Relatório teórico:** conceitos de microsserviços, DevOps, conteinerização, orquestração, CI/CD e observabilidade.
-- **Relatório prático:** arquitetura desenvolvida, execução do ambiente, configurações e estratégias técnicas adotadas.
+- **Relatório teórico:** aborda os conceitos relacionados a microsserviços, DevOps, conteinerização, orquestração, CI/CD e observabilidade.
+- **Relatório prático:** documenta a implementação do projeto, as ferramentas utilizadas e as configurações realizadas.
 
-Os arquivos estão disponíveis na raiz do repositório:
-
-- `relatorio-teorico.pdf`
-- `relatorio-pratico.pdf`
+Os relatórios devem ser consultados no local definido para a entrega acadêmica, pois seus arquivos não foram identificados na raiz do repositório.
 
 ## 🎓 Contexto acadêmico
 
-Projeto desenvolvido como parte da atividade **Cloud DevOps: Orchestrating Containers and Micro Services**, com o objetivo de aplicar conceitos de desenvolvimento distribuído, automação, monitoramento e infraestrutura.
+Projeto desenvolvido como parte da atividade **Cloud DevOps: Orchestrating Containers and Micro Services**, com o objetivo de aplicar conceitos de desenvolvimento distribuído, conteinerização, automação, monitoramento e infraestrutura.
 
-O desenvolvimento permitiu praticar a integração entre serviços independentes e conhecer ferramentas utilizadas em ambientes modernos de desenvolvimento e operação de aplicações.
+O desenvolvimento proporciona a oportunidade de estudar a integração entre serviços independentes e conhecer ferramentas utilizadas em ambientes modernos de desenvolvimento e operação de aplicações.
 
 ---
 
-**Demonstração em vídeo:** https://youtu.be/DndaMGAUI_I
+**Vídeo de apresentação:** https://youtu.be/DndaMGAUI_I
+
+**Repositório:** https://github.com/Trixbeadev/Pedido-Veloz
