@@ -178,7 +178,11 @@ Exemplo de consulta:
 up
 ```
 
+<<<<<<< HEAD
 Essa consulta permite verificar o estado dos alvos configurados no Prometheus.
+=======
+Os testes usam os clientes Flask e conexoes PostgreSQL simuladas; nao exigem API nem banco rodando, entao podem ser executados localmente ou na CI sem subir o Compose. Cobrem validacao e criacao/listagem de pedidos, pagamento simulado, consulta/reserva de estoque, metricas e falha de comunicacao do gateway. A CI tambem verifica sintaxe Python e estilo com Ruff. Para validar a integracao real com PostgreSQL, suba o Compose e siga os exemplos de execucao acima.
+>>>>>>> f84166d (docs: adiciona relatorios do projeto)
 
 ### Jaeger
 
