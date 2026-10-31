@@ -1,27 +1,21 @@
-﻿global:
+global:
   scrape_interval: 15s
+  evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: "prometheus"
-    static_configs:
-      - targets: ["localhost:9090"]
-
-  - job_name: "gateway"
+  - job_name: gateway
     metrics_path: /metrics
     static_configs:
-      - targets: ["gateway:5000"]
-
-  - job_name: "pedidos"
+      - targets: ["gateway.pedidos-veloz.svc.cluster.local:80"]
+  - job_name: servico-pedidos
     metrics_path: /metrics
     static_configs:
-      - targets: ["servico-pedidos:5001"]
-
-  - job_name: "pagamentos"
+      - targets: ["servico-pedidos.pedidos-veloz.svc.cluster.local:5001"]
+  - job_name: servico-pagamentos
     metrics_path: /metrics
     static_configs:
-      - targets: ["servico-pagamentos:5002"]
-
-  - job_name: "estoque"
+      - targets: ["servico-pagamentos.pedidos-veloz.svc.cluster.local:5002"]
+  - job_name: servico-estoque
     metrics_path: /metrics
     static_configs:
-      - targets: ["servico-estoque:5003"]
+      - targets: ["servico-estoque.pedidos-veloz.svc.cluster.local:5003"]
